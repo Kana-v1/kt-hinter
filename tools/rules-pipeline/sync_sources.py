@@ -8,7 +8,8 @@ hand-picked or web-searched URL (a stale search result once fed this project
 January rules while the page already linked an August update).
 
 - Every "team-rules" entry becomes teams.<id>, keyed by a slug of its title.
-- Key downloads (lite rules, universal equipment, core rules update log) become core.<id>.
+- Key downloads (lite rules, universal equipment, update logs, killzone and terrain
+  documents) become core.<id>.
 - Existing census ids keep their key via ALIASES.
 
 Usage: sync_sources.py            # rewrite sources.json, print what changed
@@ -27,7 +28,13 @@ SOURCES = Path(__file__).with_name("sources.json")
 # census ids that predate slug-keys
 ALIASES = {"angels_of_death": "aod"}
 CORE = {"Kill Team Lite Rules": "lite_rules", "Universal Equipment": "universal_equipment",
-        "Core Rules: Update Log": "core_update_log"}
+        "Core Rules: Update Log": "core_update_log",
+        # killzones, terrain and mission layout (for map-making, not the app)
+        "Approved Ops 2025 Tournament Companion": "approved_ops",
+        "Approved Ops: Update Log": "approved_ops_update_log",
+        "Killzone Tomb World": "killzone_tomb_world",
+        "Killzone: Tomb World Update Log": "killzone_tomb_world_update_log",
+        "Exodite Architecture Terrain Templates": "exodite_terrain_templates"}
 
 
 def slug(title):

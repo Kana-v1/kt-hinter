@@ -292,6 +292,24 @@
     }
   },
   "core": {
+    "approved_ops": {
+      "title": "Approved Ops 2025 Tournament Companion",
+      "url": "https://assets.warhammer-community.com/eng_kt_approved_ops_2025_tournament_companion-fpsaag6ryp-uwnxgflxow.pdf",
+      "lastUpdated": "26/08/2026",
+      "fileSize": "8.15 MB"
+    },
+    "killzone_tomb_world": {
+      "title": "Killzone Tomb World",
+      "url": "https://assets.warhammer-community.com/eng_29-04_kt_mission_pack_killzone_tomb_world-jgm5ebvcoy-fu3lfpskgq.pdf",
+      "lastUpdated": "29/04/2026",
+      "fileSize": "18.17 MB"
+    },
+    "approved_ops_update_log": {
+      "title": "Approved Ops: Update Log",
+      "url": "https://assets.warhammer-community.com/eng_kt_approved_ops_update_log-c46bfdlsms-senqgrexsi.pdf",
+      "lastUpdated": "26/08/2026",
+      "fileSize": "1.35 MB"
+    },
     "core_update_log": {
       "title": "Core Rules: Update Log",
       "url": "https://assets.warhammer-community.com/eng_17-06_kill_team_key_downloads_core_rules_update_log-9dzdz0ewle-wutcyhpgzf.pdf",
@@ -309,6 +327,18 @@
       "url": "https://assets.warhammer-community.com/eng_jul25_kt_lite_rules-jmjv4hdamy-qlsqxdf83p.pdf",
       "lastUpdated": "23/07/2025",
       "fileSize": "1.09 MB"
+    },
+    "killzone_tomb_world_update_log": {
+      "title": "Killzone: Tomb World Update Log",
+      "url": "https://assets.warhammer-community.com/eng_killzone_tomb_world_update_log-ptyzlo3dfr-ivlzsazxnf.pdf",
+      "lastUpdated": "26/08/2026",
+      "fileSize": "1.08 MB"
+    },
+    "exodite_terrain_templates": {
+      "title": "Exodite Architecture Terrain Templates",
+      "url": "https://assets.warhammer-community.com/eng_22-07_kill_team_key_downloads_exodite_architecture_terrain_templates-uyhsjpzv6w-tkm2bqogxz.pdf",
+      "lastUpdated": "22/07/2026",
+      "fileSize": "1.65 MB"
     }
   }
 }
