@@ -48,9 +48,11 @@ struct OperativeSheet: View {
             .navigationTitle("Operative")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) { FeedbackButton() }
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
             .ruleInfo(store.engine)
+            .feedback { "Operative sheet: \(store.engine.operative(store.snapshot.op)?.name ?? store.snapshot.op)" }
             .confirmationDialog(deathOffer.map { "Use \($0.name)?" } ?? "",
                                 isPresented: Binding(get: { deathOffer != nil }, set: { if !$0 { deathOffer = nil } }),
                                 titleVisibility: .visible, presenting: deathOffer) { card in

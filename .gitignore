@@ -21,3 +21,8 @@ __pycache__/
 
 # Personal, never published (e.g. the photo-crop tool)
 /local/
+
+# Problem reports from the phone: their screenshots can show the player's own
+# operative photos. Only the folder's README is tracked.
+/feedback/*
+!/feedback/README.md

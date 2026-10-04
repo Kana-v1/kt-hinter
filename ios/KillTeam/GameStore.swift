@@ -18,6 +18,8 @@ final class GameStore: ObservableObject {
     @Published var toast: String?
     /// Bumped when operative photos change, so views re-read them.
     @Published private(set) var photoVersion = 0
+    /// Problem reports saved on the phone (Feedback.swift), newest first.
+    @Published private(set) var feedback: [FeedbackItem] = []
     private var photoCache: [String: UIImage] = [:]
 
     let teams: [TeamInfo]
@@ -41,6 +43,7 @@ final class GameStore: ObservableObject {
         self.game = game
         let engine = engines[game.team]!
         snapshot = engine.derive(engine.fold(game.events), logLength: game.events.count)
+        feedback = FeedbackFiles.list()
         Log.write("loaded \(teams.count) teams; game \(game.team) with \(game.events.count) events", "store")
     }
 
@@ -79,6 +82,8 @@ final class GameStore: ObservableObject {
         guard !ended.isEmpty, let op = engine.operative(id) else { return }
         toast = "\(op.name) is acting — \(ended.joined(separator: ", ")) ended."
     }
+
+    func reloadFeedback() { feedback = FeedbackFiles.list() }
 
     private func refresh() {
         snapshot = engine.derive(state, logLength: game.events.count)

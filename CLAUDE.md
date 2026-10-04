@@ -40,8 +40,11 @@ The app must never model:
 | `ios/KTEngine/Sources/KTEngine/Derive.swift` | `derive` → `Snapshot`: grouped Use now / Active, elsewhere, weapon notes, `ruleInfo`. |
 | `ios/KTEngine/Sources/KTEngine/Glossary.swift` | Splits rule text into tappable term segments. |
 | `ios/KTEngine/Sources/KTEngine/GameLog.swift` | The persisted game: team plus event log. |
+| `ios/KTEngine/Sources/KTEngine/Feedback.swift` | `FeedbackReport` (a problem report from the phone) and `describe` (a snapshot as text). |
+| `ios/KTEngine/Sources/kt-feedback/` | `swift run kt-feedback`: prints and replays the reports in `feedback/`. |
 | `ios/KTEngine/Tests/` | Scenario, applicability, data-integrity and glossary tests; `Golden/` holds the applicability tables. |
 | `ios/KillTeam/` | SwiftUI app. `GameStore` owns the game; views follow the design canvas. |
+| `feedback/` | Inbox for the phone's problem reports. Git-ignored except its README. |
 | `ios/project.yml` | XcodeGen spec. Bundles `data/teams` and `data/core` straight from the repo. |
 | `.github/workflows/ios.yml` | CI: engine tests, then an unsigned `.ipa`. **CI is the only iOS compiler.** |
 | `data/teams/<id>.json` | Rules census per team: the single source of truth. |
@@ -181,6 +184,25 @@ Celestian Insidiants on 2026-09-27. Nothing is unresolved.
 - Operative photos and team symbols are the player's own, on the phone only, never bundled or
   committed. Files are matched by name: `…_<operative id>` or `…_<team id>` (longest id wins).
 - The app icon is an original design, drawn by `tools/app_icon.py`. No GW artwork in the repo.
+
+## Feedback reports
+
+The speech-bubble button (game screen, operative sheet, Setup, every rule sheet) saves a
+report on the phone: the player's note plus the app's state. That state is the whole
+`GameLog` (it replays exactly), `shown` (`Engine.describe` of the snapshot on screen), `screen`
+(where they were, with the rule id on rule sheets), view state, the build's commit, a log tail
+and an optional screenshot.
+
+- **Reading them:** when the user says they sent feedback, run `cd ios/KTEngine && swift run kt-feedback`.
+  - It writes each screenshot beside its report as a `.jpg`; look at it with Read.
+  - Its replay diff on today's census and code shows whether a fix changed what the player saw.
+  - Reproduce from `game.events`, not from the note.
+- **Fixing:** where it fits, turn a report's events into a regression test.
+- **Never lose one:**
+  - The phone keeps every report until the player deletes it. Sending only moves it to `feedback/sent/`.
+  - In the repo, move handled reports to `feedback/done/`; don't delete them.
+  - Never commit them: screenshots can show the player's own operative photos.
+- `describe` must keep covering what the screens show. Add a field there when a view gains one.
 
 ## Verification
 

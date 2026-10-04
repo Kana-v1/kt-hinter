@@ -35,6 +35,7 @@ jobs:
             -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            KT_COMMIT="${GITHUB_SHA::7}" \
             build > build.log 2>&1 || {
               echo "::group::errors"; grep -E "error:" build.log | sort -u | head -60; echo "::endgroup::"
               tail -40 build.log

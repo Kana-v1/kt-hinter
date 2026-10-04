@@ -86,6 +86,7 @@ struct RuleName: View {
 
 /// Presents term and rule sheets for everything inside it.
 struct RuleInfoSheets: ViewModifier {
+    @EnvironmentObject private var store: GameStore
     let engine: Engine
     @State private var ref: InfoRef?
 
@@ -94,6 +95,7 @@ struct RuleInfoSheets: ViewModifier {
             .environment(\.showInfo, { ref = $0 })
             .sheet(item: $ref) { r in
                 InfoSheet(engine: engine, start: r)
+                    .environmentObject(store)
                     .presentationDetents([.medium, .large])
             }
     }
@@ -120,13 +122,23 @@ struct InfoSheet: View {
                         .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.link)
                 }
                 content
+                FeedbackButton(title: "Report a problem with this rule").padding(.top, 14)
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Theme.raised)
         .environment(\.showInfo, { stack.append($0) })
+        .feedback { screenName }
         .preferredColorScheme(.dark)
+    }
+
+    /// For a report: which rule or term this sheet is showing.
+    private var screenName: String {
+        switch current {
+        case .term(let name): return "Term: \(name)"
+        case .rule(let id): return "Rule: \(engine.ruleInfo(id)?.title ?? id) (\(id))"
+        }
     }
 
     @ViewBuilder private var content: some View {

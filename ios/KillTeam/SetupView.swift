@@ -14,6 +14,8 @@ struct SetupView: View {
     @State private var importResult: String?
     @State private var symbolItem: PhotosPickerItem?
     @State private var pickingSymbolFile = false
+    @State private var feedbackSharing: [FeedbackItem]?
+    @State private var feedbackDelete: [FeedbackItem]?
 
     private var snap: Snapshot { store.snapshot }
     private var rules: RulesData { store.rules }
@@ -123,6 +125,8 @@ struct SetupView: View {
                     Text("From the latest official rules. Anything not yet confirmed is tagged Unverified in the game.")
                 }
 
+                FeedbackSection(sharing: $feedbackSharing, pendingDelete: $feedbackDelete)
+
                 Section {
                     Button("Reset whole game", role: .destructive) { confirmReset = true }
                 }
@@ -131,6 +135,7 @@ struct SetupView: View {
             .background(Theme.bg)
             .navigationTitle("Setup")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) { FeedbackButton() }
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
             .confirmationDialog("Start a new \(pendingTeam?.name ?? "") game?",
@@ -160,6 +165,8 @@ struct SetupView: View {
                 }
             }
             .ruleInfo(store.engine)
+            .feedback { "Setup" }
+            .feedbackSending(sharing: $feedbackSharing, pendingDelete: $feedbackDelete)
             .confirmationDialog("Reset the whole game?", isPresented: $confirmReset, titleVisibility: .visible) {
                 Button("Reset", role: .destructive) { store.resetGame() }
             }

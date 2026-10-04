@@ -41,7 +41,8 @@ struct GameView: View {
                             .font(.footnote.weight(.semibold)).foregroundStyle(accent)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    FeedbackButton()
                     Button { showSetup = true } label: { Image(systemName: "slider.horizontal.3") }
                         .accessibilityLabel("Setup")
                 }
@@ -62,6 +63,7 @@ struct GameView: View {
                 }
             }
             .ruleInfo(store.engine)
+            .feedback { "Game screen" }
         }
     }
 

@@ -38,6 +38,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.kanav1.killteam
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
+        # The git commit a build came from, stamped into feedback reports;
+        # CI passes the real one on the xcodebuild command line.
+        KT_COMMIT: dev
     info:
       path: KillTeam/Info.plist
       properties:
@@ -45,6 +48,7 @@ targets:
         CFBundlePackageType: APPL
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        KTCommit: $(KT_COMMIT)
         UILaunchScreen: {}
         UIUserInterfaceStyle: Dark
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]

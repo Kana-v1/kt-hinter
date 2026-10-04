@@ -10,6 +10,8 @@ let package = Package(
     products: [.library(name: "KTEngine", targets: ["KTEngine"])],
     targets: [
         .target(name: "KTEngine"),
+        // `swift run kt-feedback`: reads the problem reports sent from the phone.
+        .executableTarget(name: "kt-feedback", dependencies: ["KTEngine"]),
         .testTarget(name: "KTEngineTests", dependencies: ["KTEngine"]),
     ],
     swiftLanguageVersions: [.v5]
