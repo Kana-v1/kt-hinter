@@ -10,10 +10,13 @@ struct SetupView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var pendingTeam: TeamInfo?
     @State private var confirmReset = false
+    /// SwiftUI presents only one `.fileImporter` per view (a second one
+    /// silently never opens), so photos and the team symbol share one, and
+    /// `importFor` says which button opened it.
     @State private var importing = false
+    @State private var importFor = FileTarget.photos
     @State private var importResult: String?
     @State private var symbolItem: PhotosPickerItem?
-    @State private var pickingSymbolFile = false
     @State private var feedbackSharing: [FeedbackItem]?
     @State private var feedbackDelete: [FeedbackItem]?
 
@@ -103,7 +106,10 @@ struct SetupView: View {
                 Section {
                     teamSymbolRow
                     LabeledContent("Have photos", value: "\(photoCount) of \(rules.operatives.count)")
-                    Button("Import photos…") { importing = true }
+                    Button("Import photos…") {
+                        importFor = .photos
+                        importing = true
+                    }
                     if let importResult { Text(importResult).font(.footnote).foregroundStyle(Theme.text2) }
                     DisclosureGroup("File names for \(rules.meta.team)") {
                         ForEach(rules.operatives, id: \.id) { o in
@@ -146,16 +152,19 @@ struct SetupView: View {
                     pendingTeam = nil
                 }
             } message: { Text("The current game will be replaced.") }
-            .fileImporter(isPresented: $importing, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
+            .fileImporter(isPresented: $importing, allowedContentTypes: [.image],
+                          allowsMultipleSelection: importFor == .photos) { result in
                 guard case .success(let urls) = result else { return }
-                let r = store.importPhotos(from: urls)
-                importResult = "Added \(r.matched)." + (r.unmatched.isEmpty ? "" : " Names didn't end with an operative or team id: " + r.unmatched.joined(separator: ", "))
-            }
-            .fileImporter(isPresented: $pickingSymbolFile, allowedContentTypes: [.image]) { result in
-                guard case .success(let url) = result else { return }
-                let scoped = url.startAccessingSecurityScopedResource()
-                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                if let data = try? Data(contentsOf: url) { store.setTeamSymbol(data) }
+                switch importFor {
+                case .photos:
+                    let r = store.importPhotos(from: urls)
+                    importResult = "Added \(r.matched)." + (r.unmatched.isEmpty ? "" : " Names didn't end with an operative or team id: " + r.unmatched.joined(separator: ", "))
+                case .symbol:
+                    guard let url = urls.first else { return }
+                    let scoped = url.startAccessingSecurityScopedResource()
+                    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                    if let data = try? Data(contentsOf: url) { store.setTeamSymbol(data) }
+                }
             }
             .onChange(of: symbolItem) { _, item in
                 guard let item else { return }
@@ -180,7 +189,10 @@ struct SetupView: View {
             PhotosPicker(selection: $symbolItem, matching: .images) {
                 Label("Choose from Photos", systemImage: "photo.on.rectangle")
             }
-            Button { pickingSymbolFile = true } label: { Label("Choose from Files", systemImage: "folder") }
+            Button {
+                importFor = .symbol
+                importing = true
+            } label: { Label("Choose from Files", systemImage: "folder") }
             if store.teamSymbol(for: store.game.team) != nil {
                 Button(role: .destructive) { store.removeTeamSymbol() } label: { Label("Remove symbol", systemImage: "trash") }
             }
@@ -218,6 +230,10 @@ struct SetupView: View {
             LabeledContent(title, value: rules.chapterTactics.first { $0.id == snap.tactics[slot] }?.name ?? "None")
         }
     }
+}
+
+enum FileTarget {
+    case photos, symbol
 }
 
 /// A rule name in Setup that opens its full text.
