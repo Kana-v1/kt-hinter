@@ -76,7 +76,8 @@ extension Engine {
             return "\(name) #\(n)"
         }
 
-        out.append("TP \(s.tp) of 4 · \(s.phase.rawValue.capitalized) · \(s.cp) CP")
+        out.append("TP \(s.tp) of 4 · \(s.phase.rawValue.capitalized) · \(s.cp) CP"
+                   + (s.resource.map { " · \($0.value) \($0.short)" } ?? ""))
         if !s.op.isEmpty {
             var acting = "Acting: \(instName(s.op))"
             if s.dead.contains(s.op) { acting += " (incapacitated)" }
@@ -105,7 +106,7 @@ extension Engine {
             out.append("### \(group.when.title)")
             for c in group.cards {
                 var line = "- \(c.name) · \(c.kindLabel) · "
-                line += c.free ? "free" : "\(c.cp) CP"
+                line += c.free ? "free" : "\(c.cp) \(c.unit)"
                 if c.reduced { line += " (was \(c.costBase))" }
                 if !c.afford { line += " · can't afford" }
                 if c.disputed { line += " · Unverified" }
@@ -118,7 +119,7 @@ extension Engine {
                                + (m.condition.isEmpty ? "" : " — \(m.condition)"))
                 }
                 for o in c.options {
-                    out.append("  option \(o.name): \(o.cp) CP" + (o.condition.isEmpty ? "" : " — \(o.condition)"))
+                    out.append("  option \(o.name): \(o.cp) \(c.unit)" + (o.condition.isEmpty ? "" : " — \(o.condition)"))
                 }
             }
         }
@@ -158,7 +159,7 @@ extension Engine {
             out.append("Used this turning point: " + s.spent.map(\.name).joined(separator: ", "))
         }
         if let sum = s.summary {
-            out.append("Recap showing for TP \(sum.tp): " + sum.paid.map { "\($0.name) \($0.cp) CP" }.joined(separator: ", "))
+            out.append("Recap showing for TP \(sum.tp): " + sum.paid.map { "\($0.name) \($0.cp) \($0.unit)" }.joined(separator: ", "))
         }
         return out.joined(separator: "\n")
     }

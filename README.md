@@ -13,7 +13,7 @@ It's a **bookkeeper, not a rules arbiter**: it tracks state and reminds you,
 and never models the board, dice or damage. Read [CLAUDE.md](CLAUDE.md) before
 adding features.
 
-Teams: **Angels of Death**, **Plague Marines**, **Celestian Insidiants**. Rules
+Teams: **Angels of Death**, **Plague Marines**, **Celestian Insidiants**, **Spectre Squad**. Rules
 are checked against the official August '26 PDFs.
 
 ## Layout

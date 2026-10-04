@@ -26,7 +26,7 @@ struct OperativeSheet: View {
                         identity(op)
                         stats(op)
                         if !snap.statuses.isEmpty { statuses }
-                        weapons(op)
+                        if !op.weapons.isEmpty { weapons(op) }
                         applies
                         Button {
                             let goingDown = !snap.dead.contains(snap.op)
@@ -56,7 +56,7 @@ struct OperativeSheet: View {
             .confirmationDialog(deathOffer.map { "Use \($0.name)?" } ?? "",
                                 isPresented: Binding(get: { deathOffer != nil }, set: { if !$0 { deathOffer = nil } }),
                                 titleVisibility: .visible, presenting: deathOffer) { card in
-                Button("\(card.name) — \(card.free ? "free" : "\(card.cp) CP")") {
+                Button("\(card.name) — \(card.free ? "free" : "\(card.cp) \(card.unit)")") {
                     store.send(Event(.activate, Params(id: card.id)))
                 }
                 Button("Not now", role: .cancel) {}

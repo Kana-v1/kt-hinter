@@ -60,29 +60,29 @@ final class StatusTests: XCTestCase {
         let ploy = e.effect("ci.ff.faith_and_fury")!
         var s = e.fold([ev(.phase, Params(phase: .firefight))])
         var q = e.quote(s, ploy, opt: nil)
-        XCTAssertEqual(q.cp, 1, "not INSPIRING yet")
+        XCTAssertEqual(q.price, 1, "not INSPIRING yet")
         XCTAssertEqual(q.maybe.first?.from, "Holy Example")
 
         s = e.fold([ev(.phase, Params(phase: .firefight)), ev(.status, Params(opt: "inspiring"))])
         q = e.quote(s, ploy, opt: nil)
-        XCTAssertEqual(q.cp, 0)
-        XCTAssertEqual(e.quote(s, e.effect("core.ff.command_reroll")!, opt: nil).cp, 0, "Command Re-roll included")
+        XCTAssertEqual(q.price, 0)
+        XCTAssertEqual(e.quote(s, e.effect("core.ff.command_reroll")!, opt: nil).price, 0, "Command Re-roll included")
 
         // once per turning point
         s = e.fold([ev(.phase, Params(phase: .firefight)), ev(.status, Params(opt: "inspiring")),
                     ev(.activate, Params(id: "ci.ff.faith_and_fury"))])
         XCTAssertEqual(s.cp, 3)
-        XCTAssertEqual(e.quote(s, e.effect("ci.ff.fervent_hate")!, opt: nil).cp, 1)
+        XCTAssertEqual(e.quote(s, e.effect("ci.ff.fervent_hate")!, opt: nil).price, 1)
     }
 
     func testAccusingExorcistNeedsAnInspiringDenuncia() {
         let ploy = e.effect("ci.strat.suspect_and_eliminate")!
-        XCTAssertEqual(e.quote(e.fold([]), ploy, opt: nil).cp, 1)
+        XCTAssertEqual(e.quote(e.fold([]), ploy, opt: nil).price, 1)
         let s = e.fold([ev(.status, Params(id: "insidiant_denuncia", opt: "inspiring"))])
-        XCTAssertEqual(e.quote(s, ploy, opt: nil).cp, 0)
+        XCTAssertEqual(e.quote(s, ploy, opt: nil).price, 0)
         let down = e.fold([ev(.status, Params(id: "insidiant_denuncia", opt: "inspiring")),
                            ev(.down, Params(id: "insidiant_denuncia"))])
-        XCTAssertEqual(e.quote(down, ploy, opt: nil).cp, 1)
+        XCTAssertEqual(e.quote(down, ploy, opt: nil).price, 1)
     }
 
     func testTeamsWithoutStatusesHaveNone() {

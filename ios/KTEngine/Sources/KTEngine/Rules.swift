@@ -31,6 +31,31 @@ public struct Meta: Codable {
     /// Operatives in a legal roster (6 unless the team says otherwise).
     public var rosterSize: Int?
     public var unresolved: [String]?
+    /// A team currency besides CP (Spectre Squad's Fieldcraft points).
+    public var resource: Resource?
+}
+
+/// A team currency besides CP. Like CP it's a counter the player can nudge;
+/// unlike CP it's gained in each Strategy phase and discarded at the end of
+/// each turning point.
+public struct Resource: Codable, Equatable {
+    public var id: String
+    /// "Fieldcraft points".
+    public var name: String
+    /// "FP", beside prices and the counter.
+    public var short: String
+    /// Gained in each Strategy phase.
+    public var gain: Int
+    public var bonus: ResourceBonus?
+}
+
+/// More gain while an operative is on the roster and not incapacitated
+/// (Fieldcraft: +1 with the Vox-Operator).
+public struct ResourceBonus: Codable, Equatable {
+    public var operative: String
+    public var gain: Int
+    /// What the app can't check ("if it isn't within control range of enemy operatives").
+    public var condition: String?
 }
 
 public struct Vocab: Codable {
@@ -41,6 +66,8 @@ public struct Vocab: Codable {
 
 public struct Cost: Codable, Equatable {
     public var cp: Int
+    /// Priced in the team's resource instead of CP (Elite Fieldcraft: 1FP).
+    public var resource: Int?
 }
 
 public struct Effect: Codable {
@@ -70,17 +97,23 @@ public struct Effect: Codable {
     public var trigger: String?
     /// Only applies while the operative it's for has this status.
     public var requiresStatus: String?
+    /// Operative types a team-wide rule doesn't apply to ("excluding VOX-RELAY BEACON").
+    public var notFor: [String]?
 
     enum CodingKeys: String, CodingKey {
         case id, name, kind, universal, cost, duration, text, options, requiresOperative, alwaysOn,
              costOverrides, changesOptionOf, requires, disputed, verify,
-             when, appliesTo, weaponMatch, hint, grantsWeaponRules, trigger, requiresStatus
+             when, appliesTo, weaponMatch, hint, grantsWeaponRules, trigger, requiresStatus, notFor
         case oncePer = "once_per"
     }
 
     public var overrides: [Override] { costOverrides ?? [] }
 
     public var isAlwaysOn: Bool { alwaysOn ?? false }
+    /// Paid in the team's resource rather than CP.
+    public var usesResource: Bool { cost.resource != nil }
+    /// The base price, in CP or the team's resource.
+    public var price: Int { cost.resource ?? cost.cp }
     public var isPloy: Bool { kind == "strategy_ploy" || kind == "firefight_ploy" }
 }
 
@@ -97,7 +130,9 @@ public struct Override: Codable {
     public var kind: String?
     public var options: [String]?
     public var excludes: [String]?
-    public var cp: Int
+    /// The new price: `cp` for a CP cost, `resource` for a resource one.
+    public var cp: Int?
+    public var resource: Int?
     public var oncePer: String?
     public var group: String?
     public var selectedIs: String?
@@ -106,9 +141,11 @@ public struct Override: Codable {
     public var requiresStatus: String?
 
     enum CodingKeys: String, CodingKey {
-        case effect, kind, options, excludes, cp, group, selectedIs, condition, requiresStatus
+        case effect, kind, options, excludes, cp, resource, group, selectedIs, condition, requiresStatus
         case oncePer = "once_per"
     }
+
+    public var price: Int { resource ?? cp ?? 0 }
 }
 
 public struct Requires: Codable {

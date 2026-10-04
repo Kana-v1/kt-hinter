@@ -29,6 +29,7 @@ enum Theme {
         case "plague_marines": return Color(hex: 0xB5D96B)
         case "aod": return Color(hex: 0x8CB8FF)
         case "celestian_insidiants": return Color(hex: 0xE8C27A)
+        case "spectre_squad": return Color(hex: 0xBFA88A)
         default: return Color(hex: 0xE6A94A)
         }
     }
@@ -186,6 +187,13 @@ struct Glyph: View {
         case "grenade": return "circle.circle"
         case "heavy": return "square.stack.3d.up"
         case "crosshair": return "scope"
+        case "beacon": return "dot.radiowaves.left.and.right"
+        case "vox": return "antenna.radiowaves.left.and.right"
+        case "medic": return "cross.case"
+        case "guide": return "binoculars"
+        case "flame": return "flame"
+        case "loader": return "shippingbox"
+        case "stubber": return "circle.grid.3x3"
         default: return "shield"
         }
     }

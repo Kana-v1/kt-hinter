@@ -29,6 +29,16 @@ public struct Snapshot {
     public var statuses: [StatusChip]
     /// Operative instance → names of the statuses it has, for roster chips.
     public var statusNames: [String: [String]]
+    /// The team's second currency, if it has one (Fieldcraft points).
+    public var resource: ResourceCounter?
+}
+
+public struct ResourceCounter: Equatable {
+    public var name: String
+    public var short: String
+    public var value: Int
+    /// How this turning point's gain was made up, and what the app can't check about it.
+    public var note: String
 }
 
 public struct StatusChip: Equatable {
@@ -55,7 +65,10 @@ public struct UsableCard {
     public var kindLabel: String
     public var hint: [Segment]
     public var costBase: Int
+    /// The price, in `unit`.
     public var cp: Int
+    /// "CP", or the team resource's short name ("FP").
+    public var unit: String
     public var afford: Bool
     /// Why the price is reduced ("Icon of Contagion: if the Icon Bearer is …").
     public var discount: [Segment]?
@@ -190,8 +203,19 @@ extension Engine {
             statuses: statuses(for: s.op).map { StatusChip(id: $0.id, name: $0.name, on: s.has(s.op, $0.id)) },
             statusNames: s.statuses.mapValues { set in
                 (rules.statuses ?? []).filter { set.contains($0.id) }.map(\.name)
-            }
+            },
+            resource: resourceCounter(s)
         )
+    }
+
+    func resourceCounter(_ s: GameState) -> ResourceCounter? {
+        guard let r = rules.meta.resource else { return nil }
+        var note = "Gained each Strategy phase, discarded at the end of the turning point."
+        if let b = r.bonus, (s.resGain ?? resourceGain(s)) > r.gain {
+            let who = opById[b.operative]?.name ?? b.operative
+            note = "Includes +\(b.gain) for the \(who)" + (b.condition.map { " \($0)" } ?? "") + "."
+        }
+        return ResourceCounter(name: r.name, short: r.short, value: resource(s), note: note)
     }
 
     // MARK: use now
@@ -202,7 +226,8 @@ extension Engine {
     func usableIn(_ e: Effect, phase: Phase) -> Bool {
         switch phase {
         case .strategy: return e.kind == "strategy_ploy"
-        case .firefight: return e.kind == "firefight_ploy" || (e.kind == "equipment" && !e.isAlwaysOn)
+        case .firefight:
+            return e.kind == "firefight_ploy" || (e.kind == "equipment" && !e.isAlwaysOn) || (e.usesResource && !e.isAlwaysOn)
         }
     }
 
@@ -210,12 +235,13 @@ extension Engine {
         let q = quote(s, e, opt: nil)
         let discount = q.from.map { from in segments("\(from): \(q.condition ?? "")", excluding: e.name) }
         let options = (e.options ?? []).map { o in
-            OptionQuote(id: o.id, name: o.name, condition: o.condition ?? "", cp: quote(s, e, opt: o.id).cp)
+            OptionQuote(id: o.id, name: o.name, condition: o.condition ?? "", cp: quote(s, e, opt: o.id).price)
         }
         return UsableCard(
             id: e.id, name: e.name, kind: e.kind, kindLabel: kindLabel(e, slot: nil),
             hint: segments(e.hint ?? e.text, excluding: e.name),
-            costBase: e.cost.cp, cp: q.cp, afford: s.cp >= q.cp, discount: discount,
+            costBase: e.price, cp: q.price, unit: e.usesResource ? rules.meta.resource?.short ?? "" : "CP",
+            afford: (e.usesResource ? resource(s) : s.cp) >= q.price, discount: discount,
             maybe: q.maybe.map { MaybeRoute(from: $0.from, options: $0.options, condition: $0.condition ?? "",
                                              needsOperative: $0.needs.flatMap { opById[$0]?.name }) },
             options: options, disputed: e.disputed ?? false, trigger: e.trigger)
@@ -239,6 +265,7 @@ extension Engine {
         var slot: String?
         var disputed: Bool
         var requiresStatus: String?
+        var notFor: [String] = []
 
         init(effect e: Effect, opt: String?, slot: String?, always: Bool) {
             let option = opt.flatMap { o in e.options?.first(where: { $0.id == o }) }
@@ -257,6 +284,7 @@ extension Engine {
             self.slot = slot
             disputed = e.disputed ?? false
             requiresStatus = e.requiresStatus
+            notFor = e.notFor ?? []
         }
 
         init(status st: StatusDef) {
@@ -304,6 +332,7 @@ extension Engine {
 
     func appliesToSelected(_ item: InPlay, _ s: GameState, veterans: [String]) -> Bool {
         if let st = item.requiresStatus, !s.has(s.op, st) { return false }
+        if item.notFor.contains(typeOf(s.op)) { return false }
         switch item.appliesTo {
         case .team:
             return true
@@ -330,7 +359,8 @@ extension Engine {
         case .weapons:
             return "operatives with a " + item.weaponMatch.joined(separator: " or ")
         case .team:
-            return "all operatives"
+            let except = item.notFor.compactMap { opById[$0]?.name }
+            return except.isEmpty ? "all operatives" : "all operatives except " + except.joined(separator: ", ")
         }
     }
 

@@ -18,6 +18,7 @@ struct GameView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     turnStrip
+                    resourceRow
                     phasePicker
                     actingRow
                     useSection
@@ -100,6 +101,30 @@ struct GameView: View {
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .padding(.top, 4)
+    }
+
+    /// A team's second currency (Spectre Squad's Fieldcraft points), kept like CP.
+    @ViewBuilder private var resourceRow: some View {
+        if let r = snap.resource {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(r.name).font(.footnote.weight(.semibold)).foregroundStyle(Theme.text2)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("\(r.value)").font(Theme.number(30)).foregroundStyle(Theme.link)
+                        Text(r.short).font(.subheadline).foregroundStyle(Theme.text2)
+                    }
+                }
+                Text(r.note).font(.caption).foregroundStyle(Theme.text2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 6) {
+                    stepButton("minus", "Spend one \(r.short)") { store.send(Event(.res, Params(d: -1))) }
+                    stepButton("plus", "Gain one \(r.short)") { store.send(Event(.res, Params(d: 1))) }
+                }
+            }
+            .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 10)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
     }
 
     private func stepButton(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
@@ -321,7 +346,7 @@ struct RecapSheet: View {
                     HStack {
                         Text(p.name).font(.body.weight(.semibold))
                         Spacer()
-                        Text(p.cp == 0 ? "Free" : "\(p.cp) CP")
+                        Text(p.cp == 0 ? "Free" : "\(p.cp) \(p.unit)")
                             .font(.system(size: 15, weight: .bold, design: .rounded)).foregroundStyle(Theme.text2)
                     }
                     .padding(.horizontal, 14).padding(.vertical, 12)

@@ -7,7 +7,7 @@ mid-game: **"what can I use right now?"** It shows:
 - the rules those effects add to its weapons
 - the acting operative's datacard
 
-Teams: Angels of Death, Plague Marines and Celestian Insidiants. The user is a casual player: fewer taps beat rules precision.
+Teams: Angels of Death, Plague Marines, Celestian Insidiants and Spectre Squad. The user is a casual player: fewer taps beat rules precision.
 
 ## Scope: read this before adding features
 
@@ -69,6 +69,8 @@ Invariants, in order of importance:
 1. **Derive, never mutate.** There's no "+1 on apply, −1 on expiry" anywhere. Expiry isn't an event:
    - `end_of_turning_point` effects drop when TP advances.
    - `this_activation` effects drop when a *different* operative is selected, because that's a new activation.
+   - A team resource (Fieldcraft points) follows the roster during the Strategy phase, is fixed when
+     the Firefight starts, and starts over at `TP_NEXT`.
 
    Subtract-on-expiry logic is the classic buff-system bug.
 2. **The log is the state.** Every change is an Event, and state is `fold(events)`. Undo drops the last
@@ -91,7 +93,7 @@ Every entry in `effects[]`:
 | Field | Meaning |
 | --- | --- |
 | `kind` | `strategy_ploy` · `firefight_ploy` · `equipment` · `faction_rule` · `operative_ability` |
-| `cost.cp` / `once_per` | Price and limit (`turning_point` / `battle`). |
+| `cost.cp` / `once_per` | Price and limit (`turning_point` / `battle`). `cost.resource` prices it in the team's resource instead. |
 | `duration` | `instant` `this_sequence` `this_activation` `this_counteraction` `end_of_turning_point` `battle` |
 | `when` | `activation` · `attack` · `defence` · `any`: which group it shows in. |
 | `appliesTo` | `team` · `self` (only its `requiresOperative`) · `weapons` (with `weaponMatch[]`). |
@@ -101,6 +103,7 @@ Every entry in `effects[]`:
 | `options[]` | Sub-choices (Combat Doctrine), each with a `hint` and optional grants. |
 | `requiresOperative` | Exists only while that operative is on the roster and not incapacitated. |
 | `requiresStatus` | Applies only while its operative has that status (Inspired Strikes: INSPIRING). |
+| `notFor` | Operative types a team-wide rule skips ("excluding VOX-RELAY BEACON"). |
 | `alwaysOn` | Passive: always in play, never "use now". |
 | `costOverrides[]` | Discounts it grants to other effects (see below). |
 | `source` / `verify[]` / `disputed` | Provenance. `disputed` shows a red **Unverified** tag. |
@@ -114,6 +117,12 @@ and clears with a `STATUS` event; the app can't see them happen. While set, a st
 operative like a rule in play, with its weapon notes. This was added for Celestian Insidiants
 (INSPIRING, Ardour, Wrath) — a real vocabulary addition, not a one-off.
 
+`meta.resource` (`{id, name, short, gain, bonus?: {operative, gain, condition}}`) is a team currency
+besides CP, added for Spectre Squad's Fieldcraft points. It's gained in each Strategy phase, plus the
+bonus while that operative is on the roster and up, and discarded at the end of the turning point.
+The player nudges it with `RES` events (±1), like CP. Effects priced with `cost.resource` are usable
+in the Firefight phase and spend it; their cards and the recap show its `short` name ("1 FP").
+
 ### Cost overrides
 
 - `effect` or `kind`: what it discounts.
@@ -124,6 +133,7 @@ operative like a rule in play, with its weapon notes. This was added for Celesti
 - `requiresStatus`: only while the operative granting it has that status (Holy Example, Accusing
   Exorcist need INSPIRING). Otherwise it's a "can be free" hint too.
 - `condition`: human-readable text for what the app can't check.
+- `cp` or `resource`: the new price, in the discounted effect's currency (Cool-Headed: `resource: 0`).
 
 Vocabularies are closed (`vocab` in each census). If a card genuinely needs a new value, add it and say so.
 
@@ -150,7 +160,7 @@ a reviewed edit of the census, then `tools/add_ios_model_fields.py`.
   Ceaseless ≠ Relentless.
 
 AoD and Plague Marines were checked page by page against the August '26 PDFs on 2026-09-26,
-Celestian Insidiants on 2026-09-27. Nothing is unresolved.
+Celestian Insidiants on 2026-09-27, Spectre Squad on 2026-10-04. Nothing is unresolved.
 
 ## Team notes
 
@@ -167,6 +177,14 @@ Celestian Insidiants on 2026-09-27. Nothing is unresolved.
   - INSPIRING and the lasting Benedictions (Ardour, Wrath) are statuses the player taps on the
     operative sheet. Restoration and Exigence are one-off, so they're text only.
   - The Superior has two loadouts; its datacard lists every weapon from both.
+- **Spectre Squad:**
+  - Veteran Sergeant, Vox-Relay Beacon, plus 9. Troopers repeat, the rest once. No chapter tactics.
+  - Fieldcraft points: 2 per turning point while the Vox-Operator is up, else 1. The Vox-Operator's
+    enemy control range can't be seen, so the player taps − if it doesn't count.
+  - Elite Fieldcraft is a "Use now" card for 1 FP. Cool-Headed makes it free once per turning point
+    while a Trooper is acting.
+  - The Beacon (no weapons) skips the team-wide rules it can't use: Expendable allows only Signal.
+  - The roster page gives the Gunner fists; its datacard (followed) has a gun butt.
 
 ## UI conventions
 

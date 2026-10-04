@@ -42,9 +42,9 @@ final class ScenarioTests: XCTestCase {
         let e = Repo.engine("aod")
         let s = e.fold([]) // the Captain is selected
         let q = e.quote(s, e.effect("aod.ff.shock_assault")!, opt: nil)
-        XCTAssertEqual(q.cp, 0)
+        XCTAssertEqual(q.price, 0)
         XCTAssertEqual(q.from, "Heroic Leader")
-        XCTAssertEqual(e.quote(s, e.effect("core.ff.command_reroll")!, opt: nil).cp, 1, "Command Re-roll is excluded")
+        XCTAssertEqual(e.quote(s, e.effect("core.ff.command_reroll")!, opt: nil).price, 1, "Command Re-roll is excluded")
     }
 
     func testHeroicLeaderIsOnlyAHintWhenSomeoneElseActs() {
@@ -115,10 +115,10 @@ final class ScenarioTests: XCTestCase {
         let e = Repo.engine("plague_marines")
         let contagion = e.effect("pm.strat.contagion")!
         let q = e.quote(e.fold([]), contagion, opt: nil)
-        XCTAssertEqual(q.cp, 0)
+        XCTAssertEqual(q.price, 0)
         XCTAssertEqual(q.from, "Icon of Contagion")
         let without = e.fold([ev(.roster, Params(id: "plague_marine_icon_bearer"))])
-        XCTAssertEqual(e.quote(without, contagion, opt: nil).cp, 1)
+        XCTAssertEqual(e.quote(without, contagion, opt: nil).price, 1)
     }
 
     func testPloysAreOncePerTurningPointExceptCommandReroll() {

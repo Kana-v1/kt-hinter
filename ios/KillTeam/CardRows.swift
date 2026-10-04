@@ -279,7 +279,7 @@ struct UsableRow: View {
                                     Text(o.condition).font(.footnote).foregroundStyle(Theme.text2)
                                 }
                                 Spacer()
-                                Text(o.cp == 0 ? "Free" : "\(o.cp) CP")
+                                Text(o.cp == 0 ? "Free" : "\(o.cp) \(card.unit)")
                                     .font(.system(size: 15, weight: .bold, design: .rounded))
                                     .foregroundStyle(Theme.go)
                             }
@@ -297,9 +297,9 @@ struct UsableRow: View {
     }
 
     private var priceText: String {
-        let price = card.free ? "Free" : "\(card.cp) CP"
+        let price = card.free ? "Free" : "\(card.cp) \(card.unit)"
         if !card.afford { return "\(price) · short" }
-        return card.reduced ? "\(card.costBase) CP → \(price)" : price
+        return card.reduced ? "\(card.costBase) \(card.unit) → \(price)" : price
     }
 
     private func maybeText(_ m: MaybeRoute) -> String {

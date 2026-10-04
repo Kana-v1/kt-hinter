@@ -37,6 +37,8 @@ public struct Event: Codable, Equatable {
         case clearSummary = "CLEAR_SUMMARY"
         /// Toggle status `opt` on operative instance `id`.
         case status = "STATUS"
+        /// Gain (d > 0) or spend (d < 0) the team's resource by hand.
+        case res = "RES"
     }
 }
 
@@ -76,7 +78,10 @@ public struct Paid: Equatable {
     public var id: String
     public var name: String
     public var opt: String?
+    /// The price, in `unit`.
     public var cp: Int
+    /// "CP", or the team resource's short name.
+    public var unit = "CP"
 }
 
 public struct Summary: Equatable {
@@ -103,6 +108,11 @@ public struct GameState {
     public var seq = 0
     /// Operative instance → status ids (INSPIRING, Benedictions).
     public var statuses: [String: Set<String>] = [:]
+    /// The team resource gained this turning point, fixed when the Firefight
+    /// phase starts. Nil while it still follows the roster (Strategy phase).
+    public var resGain: Int?
+    /// The resource gained or spent this turning point, by hand or on effects.
+    public var resAdj = 0
 
     public func has(_ inst: String, _ status: String) -> Bool {
         statuses[inst]?.contains(status) ?? false
@@ -181,10 +191,16 @@ public final class Engine {
         let p = ev.p
         switch ev.t {
         case .phase:
-            if let ph = p.phase { s.phase = ph }
+            guard let ph = p.phase else { return }
+            // the Strategy phase's gain is settled once the firefight starts
+            if ph == .firefight, s.resGain == nil, rules.meta.resource != nil { s.resGain = resourceGain(s) }
+            s.phase = ph
 
         case .cp:
             s.cp = max(0, s.cp + (p.d ?? 0))
+
+        case .res:
+            s.resAdj += max(p.d ?? 0, -resource(s))
 
         case .tpNext:
             s.lastSummary = s.paid.isEmpty ? nil : Summary(tp: s.tp, paid: s.paid)
@@ -206,12 +222,13 @@ public final class Engine {
         case .activate:
             guard let id = p.id, let e = byId[id] else { return }
             let q = quote(s, e, opt: p.opt)
-            s.cp = max(0, s.cp - q.cp)
+            if e.usesResource { s.resAdj -= min(q.price, resource(s)) } else { s.cp = max(0, s.cp - q.price) }
             s.used[e.id] = s.tp
             if let key = q.key, q.once == "battle" { s.usedBattle.insert(key) }
             if let key = q.key, q.once == "turning_point" { s.usedTp[key] = s.tp }
             let optName = p.opt.flatMap { o in e.options?.first(where: { $0.id == o })?.name }
-            s.paid.append(Paid(id: e.id, name: e.name + (optName.map { " · \($0)" } ?? ""), opt: p.opt, cp: q.cp))
+            s.paid.append(Paid(id: e.id, name: e.name + (optName.map { " · \($0)" } ?? ""), opt: p.opt, cp: q.price,
+                               unit: e.usesResource ? rules.meta.resource?.short ?? "" : "CP"))
             if let target = e.changesOptionOf {
                 for i in s.active.indices where s.active[i].id == target { s.active[i].opt = p.opt }
             } else if e.duration != "instant" {
@@ -297,6 +314,23 @@ public final class Engine {
         s.usedTp = [:]
         s.paid = []
         s.phase = .strategy
+        // the resource is discarded at the end of each turning point
+        s.resGain = nil
+        s.resAdj = 0
+    }
+
+    /// The resource a Strategy phase gives: the base gain, plus the bonus
+    /// while its operative is on the roster and not incapacitated.
+    func resourceGain(_ s: GameState) -> Int {
+        guard let r = rules.meta.resource else { return 0 }
+        guard let b = r.bonus, s.roster.contains(where: { typeOf($0) == b.operative && !s.dead.contains($0) }) else { return r.gain }
+        return r.gain + b.gain
+    }
+
+    /// The team resource on hand now.
+    public func resource(_ s: GameState) -> Int {
+        guard rules.meta.resource != nil else { return 0 }
+        return max(0, (s.resGain ?? resourceGain(s)) + s.resAdj)
     }
 
     func ensureOp(_ s: inout GameState) {
@@ -314,7 +348,7 @@ public final class Engine {
     }
 
     struct Route {
-        var cp: Int
+        var price: Int
         var condition: String?
         var from: String
         var options: [String]?
@@ -326,7 +360,7 @@ public final class Engine {
     }
 
     struct Quote {
-        var cp: Int
+        var price: Int
         var condition: String?
         var from: String?
         var key: String?
@@ -354,7 +388,7 @@ public final class Engine {
                 let key = ov.oncePer != nil ? "\(p.id)|\(scope)" : nil
                 if let key, ov.oncePer == "battle", s.usedBattle.contains(key) { continue }
                 if let key, ov.oncePer == "turning_point", s.usedTp[key] == s.tp { continue }
-                out.append(Route(cp: ov.cp, condition: ov.condition, from: p.name, options: ov.options,
+                out.append(Route(price: ov.price, condition: ov.condition, from: p.name, options: ov.options,
                                  key: key, once: ov.oncePer, disputed: p.disputed ?? false,
                                  inactive: wrongOperative || missingStatus, needs: ov.selectedIs))
             }
@@ -365,14 +399,14 @@ public final class Engine {
     /// The price to charge and why. Option-specific or wrong-operative routes
     /// don't move the headline; they come back as "can be free" hints.
     func quote(_ s: GameState, _ e: Effect, opt: String?) -> Quote {
-        var best = Quote(cp: e.cost.cp)
+        var best = Quote(price: e.price)
         var maybe: [Route] = []
         for r in routes(s, e, opt: opt) {
             let firm = !r.inactive && (r.options == nil || (opt.map { r.options!.contains($0) } ?? false))
             if !firm {
                 maybe.append(r)
-            } else if r.cp < best.cp {
-                best = Quote(cp: r.cp, condition: r.condition, from: r.from, key: r.key, once: r.once)
+            } else if r.price < best.price {
+                best = Quote(price: r.price, condition: r.condition, from: r.from, key: r.key, once: r.once)
             }
         }
         best.maybe = maybe

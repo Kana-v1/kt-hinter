@@ -149,6 +149,77 @@ CI_GLOSSARY = {
     "Suspicion token": {"kind": "token · Celestian Insidiants", "def": "From Suspect & Eliminate, until the end of the turning point. Whenever a friendly operative is shooting against or fighting against an operative with one of your Suspicion tokens, its weapons have Punishing."},
 }
 
+SS = {
+    "core.ff.command_reroll": ("any", T, "After rolling your attack or defence dice, re-roll one of them."),
+    "ss.rule.elite_fieldcraft": ("any", T, "An enemy on Engage just did an action: a ready operative (not in other enemies' control range) takes a free Shoot at it, Dash or Reposition."),
+    "ss.rule.camo_cloaks": ("defence", T, "Shot, retaining cover saves: retain one more, or one as a critical (not with Vantage). Not the Beacon."),
+    "ss.strat.disappear": ("any", T, "One operative takes a free Reposition, not ending closer to enemies or their drop zone; it can't Reposition again this turning point."),
+    "ss.strat.ambushing_volley": ("attack", T, "Activated more than 3\" from enemies and not a valid target for them: ranged weapons get Devastating 1 (+1 if they have it) this activation."),
+    "ss.strat.hidden_engagement": ("attack", T, "Shooting while in cover from the target's view: your weapons have Balanced."),
+    "ss.strat.patience": ("any", T, "This firefight, once: skip an activation (after their first), or your last operative to activate gets Relentless for its Shoot or Fight."),
+    "ss.ff.dodge": ("activation", T, "Before or after an action: Fall Back costs 1 less AP this activation."),
+    "ss.ff.sharp_reactions": ("any", T, "An enemy on Conceal within 8\" of you just did an action: you can still interrupt it with Elite Fieldcraft."),
+    "ss.ff.silent_killers": ("attack", T, "On Conceal and not a valid target: it can Charge on Conceal this activation; its first strike deals 3 more damage, but no other successes resolve."),
+    "ss.ff.prepared_defence": ("defence", T, "Retaliating on Conceal or while ready: resolve one block early, or one block cancels two successes. Not after an Elite Fieldcraft interrupt."),
+    "ss.eq.sniper_overwatch": ("attack", T, "Once per turning point, any operative can shoot Sniper overwatch: ATK 4 · Hit 3+ · Dmg 3/3 · Devastating 2, Heavy (Dash only), Saturate, Silent."),
+    "ss.eq.starshell_flare": ("any", T, "Strategic gambit: one operative takes a free Stun Grenade action. Once it changes an enemy's APL, it's gone for the battle: mark it used."),
+    "ss.eq.tvid_feed_triangulation": ("attack", T, "Once per turning point when shooting: the target can't be obscured if another of yours can target it, or it's within 6\" of your Beacon."),
+    "ss.eq.advanced_camouflage": ("activation", T, "1AP (not the Beacon): until its next activation, on Conceal and in cover it can't be targeted except within 2\". Not visible and within 3\" of an enemy."),
+    "ss.op.issue_mission": ("activation", S, "0AP: an expended friend it can see (not the Beacon) can still interrupt with Elite Fieldcraft this turning point. Not in enemy control range."),
+    "ss.op.medic": ("defence", T, "First time each turning point a friend within 3\" of the Medicae would be incapacitated: it stays on 1 wound, can Dash to the Medicae; both −1 APL."),
+    "ss.op.medikit": ("activation", S, "0AP: a friend in its control range (not the Beacon) regains up to 2D3 wounds, unless Medic! saved it this turning point."),
+    "ss.op.grenadier": ("attack", S, "Uses frag, krak and smoke grenades free of their limited uses; frag and krak at +1 Hit."),
+    "ss.op.melta_mine": ("activation", S, "Carries your Melta Mine: Pick Up and Place it, with a free Dash after placing. Not within an enemy's control range."),
+    "ss.op.proximity_mine": ("any", S, "The Melta Mine is first within another operative's control range: 2D6+3 damage to it, and its action ends if it survives."),
+    "ss.op.prepared_killzone": ("any", S, "Setup: one extra equipment option, an Ammo Cache or an equipment terrain feature."),
+    "ss.op.scout_terrain": ("activation", T, "Scouted terrain (your territory, or within 3\" of the Guide): once per activation, ignore 2\" of a climb, or Operate Hatch for 1 less AP."),
+    "ss.op.weapons_team": ("activation", S, "Activated with a friendly Loader in its control range: the missile launcher has Heavy (Dash only) instead of Heavy."),
+    "ss.op.weapon_assist": ("attack", T, "Shooting within the Loader's control range (not the Loader itself): re-roll one attack die."),
+    "ss.op.load_weapon": ("activation", S, "1AP: a friend in its control range, not within 3\" of enemies, takes a free Shoot (not Guard). Not with a Charge, Dash or Shoot this activation."),
+    "ss.op.suppressive_fire": ("defence", S, "On Engage: enemies visible and within 3\" get −1 Atk (unless others are in its control range). Not if it Charged this turning point."),
+    "ss.op.cool_headed": ("any", S, "Once per turning point, a Trooper can interrupt with Elite Fieldcraft for 0FP."),
+    "ss.op.signal_vox": ("activation", S, "1AP Support: another friend it can see (not the Beacon) gets +1 APL until the end of its next activation. Not in enemy control range."),
+    "ss.op.pre_deploy": ("any", S, "Setup: can deploy anywhere wholly in your territory, more than 2\" from markers and equipment terrain."),
+    "ss.op.expendable": ("any", S, "Only does Signal; can't counteract, retaliate, assist or contest. Ignored for kill ops and escape/survive scoring."),
+    "ss.op.signal_beacon": ("activation", S, "1AP: another friend within 6\" gets +1 APL until the end of its next activation. Not in enemy control range."),
+}
+_AMBUSH = "activated more than 3\" from enemies and not a valid target for them"
+SS_GRANTS = {
+    "ss.strat.ambushing_volley": [
+        {"match": ["lascarbine", "lasrifle", "laspistol", "plasma gun", "missile launcher", "long-las (mobile)",
+                   "autostubber (focused)", "autostubber (sweeping)"], "rules": ["Devastating 1"], "condition": _AMBUSH},
+        {"match": ["meltagun"], "rules": ["Devastating 5"], "condition": "instead of Devastating 4, if " + _AMBUSH},
+        {"match": ["long-las (concealed)", "long-las (stationary)"], "rules": ["Devastating 4"],
+         "condition": "instead of Devastating 3, if " + _AMBUSH},
+    ],
+    "ss.strat.hidden_engagement": [{"match": ["ranged"], "rules": ["Balanced"], "condition": "if it's in cover from the target's perspective"}],
+    "ss.strat.patience": [{"match": ["*"], "rules": ["Relentless"],
+                           "condition": "if it's your last operative to activate this turning point (and you didn't skip an activation)"}],
+    "ss.op.weapons_team": [{"match": ["missile launcher"], "rules": ["Heavy (Dash only)"],
+                            "condition": "instead of Heavy, if a friendly Loader was in its control range when activated"}],
+}
+# Team-wide rules that don't apply to some operatives: the Beacon is excluded by
+# name, or by Expendable (it can't perform any action other than Signal).
+_BEACON = "spectre_vox_relay_beacon"
+SS_NOT_FOR = {
+    "ss.rule.camo_cloaks": [_BEACON],
+    "ss.eq.advanced_camouflage": [_BEACON],
+    "ss.op.medic": ["spectre_field_medicae", _BEACON],
+    "ss.op.weapon_assist": ["spectre_loader", _BEACON],
+    "ss.strat.ambushing_volley": [_BEACON],
+    "ss.strat.hidden_engagement": [_BEACON],
+    "ss.strat.patience": [_BEACON],
+    "ss.eq.sniper_overwatch": [_BEACON],
+    "ss.eq.tvid_feed_triangulation": [_BEACON],
+    "ss.eq.starshell_flare": [_BEACON],
+    "ss.op.scout_terrain": [_BEACON],
+}
+SS_GLOSSARY = {
+    "Fieldcraft point": {"kind": "resource · Spectre Squad", "def": "Gained in the Ready step of each Strategy phase: 1, or 2 if a friendly Vox-Operator is in the killzone and isn't within control range of enemy operatives. Discarded at the end of each turning point. Spend 1 to interrupt an enemy operative's activation with Elite Fieldcraft."},
+    "Concealed Position": {"kind": "weapon rule · Spectre Squad", "def": "This operative can only use this weapon the first time it's performing the Shoot action during the battle."},
+    "scouted": {"kind": "Spectre Squad", "def": "Terrain features within your territory, or within 3\" of your Guide, are scouted for friendly Spectre Squad operatives (Scout Terrain). Terrain within your territory stays scouted if the Guide is incapacitated."},
+}
+
 VOCAB_ADD = {
     "phases": ["strategy", "firefight"],
     "when": ["activation", "attack", "defence", "any"],
@@ -156,7 +227,7 @@ VOCAB_ADD = {
 }
 
 
-def apply(team, table, grants, weapon_match, option_grants=None, tactics=None, glossary=None):
+def apply(team, table, grants, weapon_match, option_grants=None, tactics=None, glossary=None, not_for=None):
     p = ROOT / f"data/teams/{team}.json"
     d = json.loads(p.read_text(encoding="utf-8"))
     d["vocab"].update(VOCAB_ADD)
@@ -173,6 +244,8 @@ def apply(team, table, grants, weapon_match, option_grants=None, tactics=None, g
             e["trigger"] = TRIGGERS[e["id"]]
         if e["id"] in grants:
             e["grantsWeaponRules"] = grants[e["id"]]
+        if not_for and e["id"] in not_for:
+            e["notFor"] = not_for[e["id"]]
         for o in e.get("options", []):
             if option_grants and o["id"] in option_grants:
                 o["grantsWeaponRules"] = option_grants[o["id"]]
@@ -192,3 +265,4 @@ def apply(team, table, grants, weapon_match, option_grants=None, tactics=None, g
 apply("aod", AOD, AOD_GRANTS, {}, AOD_OPTION_GRANTS, AOD_TACTICS)
 apply("plague_marines", PM, PM_GRANTS, PM_WEAPON_MATCH, glossary=PM_GLOSSARY)
 apply("celestian_insidiants", CI, CI_GRANTS, {}, glossary=CI_GLOSSARY)
+apply("spectre_squad", SS, SS_GRANTS, {}, glossary=SS_GLOSSARY, not_for=SS_NOT_FOR)

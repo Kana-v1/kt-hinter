@@ -10,7 +10,7 @@ enum Repo {
         for _ in 0..<5 { u.deleteLastPathComponent() } // Support.swift → … → repo root
         return u
     }()
-    static let teams = ["aod", "plague_marines", "celestian_insidiants"]
+    static let teams = ["aod", "plague_marines", "celestian_insidiants", "spectre_squad"]
     static let core = try! CoreGlossary.load(from: root.appendingPathComponent("data/core/glossary.json"))
 
     static func rules(_ team: String) -> RulesData {

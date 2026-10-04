@@ -35,7 +35,8 @@ final class ApplicabilityTests: XCTestCase {
                     }
                     switch eff.appliesTo ?? .team {
                     case .team:
-                        XCTAssertTrue(shown, "\(team): \(eff.name) is team-wide but hidden on \(inst)")
+                        let excluded = (eff.notFor ?? []).contains(typeOf(inst))
+                        XCTAssertEqual(shown, !excluded, "\(team): \(eff.name) is team-wide (not for \(eff.notFor ?? [])), shown=\(shown) on \(inst)")
                     case .self:
                         XCTAssertEqual(shown, typeOf(inst) == eff.requiresOperative,
                                        "\(team): \(eff.name) belongs to \(eff.requiresOperative ?? "?"), shown=\(shown) on \(inst)")
@@ -94,7 +95,7 @@ final class ApplicabilityTests: XCTestCase {
 
         let aod = Repo.engine("aod")
         let s = aod.fold([ev(.down, Params(id: "captain"))])
-        XCTAssertEqual(aod.quote(s, aod.effect("aod.ff.shock_assault")!, opt: nil).cp, 1, "Heroic Leader is gone with the Captain")
+        XCTAssertEqual(aod.quote(s, aod.effect("aod.ff.shock_assault")!, opt: nil).price, 1, "Heroic Leader is gone with the Captain")
     }
 
     func testWeaponNotesLandOnMatchingWeaponsOnly() {
